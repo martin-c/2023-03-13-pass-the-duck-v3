@@ -1,40 +1,82 @@
 radio.onReceivedString(function (receivedString) {
-    last_seen = radio.receivedPacket(RadioPacketProperty.SerialNumber)
+    if (game_state == "scan") {
+        if (player_list.indexOf(radio.receivedPacket(RadioPacketProperty.SerialNumber)) == -1) {
+            player_list.push(radio.receivedPacket(RadioPacketProperty.SerialNumber))
+        }
+    } else if (game_state == "play") {
+        last_seen = radio.receivedPacket(RadioPacketProperty.SerialNumber)
+    } else if (game_state == "have_duck") {
+    	
+    } else if (game_state == "finished") {
+    	
+    } else {
+    	
+    }
 })
 input.onGesture(Gesture.Shake, function () {
-    if (have_duck) {
-        radio.setTransmitPower(6)
+    if (game_state == "have_duck") {
         radio.sendValue("send_duck", last_seen)
-        have_duck = 0
+        game_state = "play"
     }
 })
 radio.onReceivedValue(function (name, value) {
     if (value == control.deviceSerialNumber()) {
-        have_duck = 1
+        game_state = "have_duck"
     } else {
-        have_duck = 0
+        game_state = "play"
+        if (duck_list.indexOf(radio.receivedPacket(RadioPacketProperty.SerialNumber)) == -1) {
+            duck_list.push(radio.receivedPacket(RadioPacketProperty.SerialNumber))
+        }
     }
 })
+let duck_list: number[] = []
+let player_list: number[] = []
 let last_seen = 0
-let have_duck = 0
+let game_state = ""
 radio.setTransmitSerialNumber(true)
-have_duck = 0
+radio.setTransmitPower(6)
+game_state = "scan"
+let scan_count = 20
 last_seen = 0
+player_list = []
+duck_list = []
 basic.showIcon(IconNames.Yes)
 basic.forever(function () {
-    if (have_duck) {
-        basic.showIcon(IconNames.Duck)
-    } else {
+    if (game_state == "scan") {
+        basic.showIcon(IconNames.Diamond)
+    } else if (game_state == "play") {
         basic.showIcon(IconNames.Square)
+    } else if (game_state == "have_duck") {
+        basic.showIcon(IconNames.Duck)
+    } else if (game_state == "finished") {
+        basic.showIcon(IconNames.Heart)
+    } else {
+        basic.showIcon(IconNames.No)
     }
 })
 basic.forever(function () {
-    basic.pause(1000)
-    if (last_seen == 0) {
-        have_duck = 1
+    basic.pause(100)
+    if (game_state == "scan") {
+        scan_count += -1
+        if (scan_count == 0) {
+            radio.sendValue("send_duck", last_seen)
+        }
+    } else if (game_state == "play") {
+    	
+    } else if (game_state == "have_duck") {
+    	
+    } else if (game_state == "finished") {
+    	
+    } else {
+    	
     }
 })
 loops.everyInterval(200, function () {
-    radio.setTransmitPower(2)
-    radio.sendString("ping")
+    if (game_state == "scan") {
+        radio.sendString("ping")
+    } else {
+        radio.setTransmitPower(2)
+        radio.sendString("ping")
+        radio.setTransmitPower(6)
+    }
 })
