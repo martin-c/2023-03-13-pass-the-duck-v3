@@ -3,7 +3,7 @@ radio.onReceivedString(function (receivedString) {
 })
 input.onGesture(Gesture.Shake, function () {
     if (have_duck) {
-        radio.setTransmitPower(6)
+        radio.setTransmitPower(7)
         radio.sendValue("send_duck", last_seen)
         have_duck = 0
     }
@@ -17,6 +17,7 @@ radio.onReceivedValue(function (name, value) {
 })
 let last_seen = 0
 let have_duck = 0
+radio.setGroup(1)
 radio.setTransmitSerialNumber(true)
 have_duck = 0
 last_seen = 0
